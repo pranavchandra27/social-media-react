@@ -1,24 +1,56 @@
-import logo from './logo.svg';
-import './App.css';
+import Router from "./Router";
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  ApolloLink,
+  HttpLink,
+  concat,
+} from "@apollo/client";
+import { ThemeProvider, createMuiTheme } from "@material-ui/core";
+import { useData } from "./provider";
+import { Toast } from "./components";
+
+const httpLink = new HttpLink({ uri: "http://localhost:4000" });
+
+const authMiddleware = new ApolloLink((operation, forward) => {
+  // add the authorization to the headers
+  operation.setContext({
+    headers: {
+      Authorization:
+        `Bearer ${localStorage.getItem("graphQl_jwt_token")}` || "",
+    },
+  });
+
+  return forward(operation);
+});
+
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: concat(authMiddleware, httpLink),
+});
 
 function App() {
+  const {
+    state: { isDarkMode },
+    snackbar,
+  } = useData();
+
+  const theme = createMuiTheme({
+    palette: {
+      type: isDarkMode ? "dark" : "light",
+    },
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      {snackbar.open && snackbar.msg && <Toast />}
+      <ApolloProvider client={client}>
+        <ThemeProvider theme={theme}>
+          <Router />
+        </ThemeProvider>
+      </ApolloProvider>
+    </>
   );
 }
 

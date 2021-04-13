@@ -9,7 +9,7 @@ import {
 
 const uri =
   process.env.REACT_APP_SERVER_URI ||
-  "https://social-app-gql-2311.herokuapp.com/";
+  "https://secure-fjord-95119.herokuapp.com/";
 
 const httpLink = new HttpLink({ uri });
 
